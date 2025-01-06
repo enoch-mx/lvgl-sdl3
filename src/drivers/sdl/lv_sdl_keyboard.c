@@ -102,10 +102,10 @@ void lv_sdl_keyboard_handler(SDL_Event * event)
 {
     uint32_t win_id = UINT32_MAX;
     switch(event->type) {
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             win_id = event->key.windowID;
             break;
-        case SDL_TEXTINPUT:
+        case SDL_EVENT_TEXT_INPUT:
             win_id = event->text.windowID;
             break;
         default:
@@ -129,8 +129,8 @@ void lv_sdl_keyboard_handler(SDL_Event * event)
 
     /* We only care about SDL_KEYDOWN and SDL_TEXTINPUT events */
     switch(event->type) {
-        case SDL_KEYDOWN: {                     /*Button press*/
-                const uint32_t ctrl_key = keycode_to_ctrl_key(event->key.keysym.sym);
+        case SDL_EVENT_KEY_DOWN: {                     /*Button press*/
+                const uint32_t ctrl_key = keycode_to_ctrl_key(event->key.key);
                 if(ctrl_key == '\0')
                     return;
                 const size_t len = lv_strlen(dsc->buf);
@@ -140,7 +140,7 @@ void lv_sdl_keyboard_handler(SDL_Event * event)
                 }
                 break;
             }
-        case SDL_TEXTINPUT: {                   /*Text input*/
+        case SDL_EVENT_TEXT_INPUT: {                   /*Text input*/
                 const size_t len = lv_strlen(dsc->buf) + lv_strlen(event->text.text);
                 if(len < KEYBOARD_BUFFER_SIZE - 1)
                     strcat(dsc->buf, event->text.text);

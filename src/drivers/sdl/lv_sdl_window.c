@@ -70,6 +70,7 @@ static void res_chg_event_cb(lv_event_t * e);
  *  STATIC VARIABLES
  **********************/
 static bool inited = false;
+static bool input_inited = false;
 static lv_timer_t * event_handler_timer;
 
 /**********************
@@ -84,7 +85,7 @@ lv_display_t * lv_sdl_window_create(int32_t hor_res, int32_t ver_res)
 {
     if(!inited) {
         SDL_Init(SDL_INIT_VIDEO);
-        SDL_StartTextInput();
+        //SDL_StartTextInput();
         event_handler_timer = lv_timer_create(sdl_event_handler, 5, NULL);
         lv_tick_set_cb(SDL_GetTicks);
         lv_delay_set_cb(SDL_Delay);
@@ -106,6 +107,11 @@ lv_display_t * lv_sdl_window_create(int32_t hor_res, int32_t ver_res)
     window_create(disp);
 
     lv_display_set_flush_cb(disp, flush_cb);
+
+    if (input_inited != true){
+        SDL_StartTextInput(dsc->window);
+        input_inited = true;
+    }
 
 #if LV_USE_DRAW_SDL == 0
     if(sdl_render_mode() == LV_DISPLAY_RENDER_MODE_PARTIAL) {
@@ -299,33 +305,31 @@ static void sdl_event_handler(lv_timer_t * t)
 #endif
         lv_sdl_keyboard_handler(&event);
 
-        if(event.type == SDL_WINDOWEVENT) {
-            lv_display_t * disp = lv_sdl_get_disp_from_win_id(event.window.windowID);
-            if(disp == NULL) continue;
-            lv_sdl_window_t * dsc = lv_display_get_driver_data(disp);
-            switch(event.window.event) {
-#if SDL_VERSION_ATLEAST(2, 0, 5)
-                case SDL_WINDOWEVENT_TAKE_FOCUS:
-#endif
-                case SDL_WINDOWEVENT_EXPOSED:
-                    window_update(disp);
-                    break;
-                case SDL_WINDOWEVENT_RESIZED:
-                    dsc->ignore_size_chg = 1;
-                    int32_t hres = (int32_t)((float)(event.window.data1) / dsc->zoom);
-                    int32_t vres = (int32_t)((float)(event.window.data2) / dsc->zoom);
-                    lv_display_set_resolution(disp, hres, vres);
-                    dsc->ignore_size_chg = 0;
-                    lv_refr_now(disp);
-                    break;
-                case SDL_WINDOWEVENT_CLOSE:
-                    lv_display_delete(disp);
-                    break;
-                default:
-                    break;
-            }
+        lv_display_t * disp = lv_sdl_get_disp_from_win_id(event.window.windowID);
+        if(disp == NULL) continue;
+        lv_sdl_window_t * dsc = lv_display_get_driver_data(disp);
+        switch(event.window.type) {
+            case SDL_EVENT_WINDOW_MOUSE_ENTER:
+
+            case SDL_EVENT_WINDOW_EXPOSED:
+                window_update(disp);
+                break;
+            case SDL_EVENT_WINDOW_RESIZED:
+                dsc->ignore_size_chg = 1;
+                int32_t hres = (int32_t)((float)(event.window.data1) / dsc->zoom);
+                int32_t vres = (int32_t)((float)(event.window.data2) / dsc->zoom);
+                lv_display_set_resolution(disp, hres, vres);
+                dsc->ignore_size_chg = 0;
+                lv_refr_now(disp);
+                break;
+            case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                lv_display_delete(disp);
+                break;
+            default:
+                break;
         }
-        if(event.type == SDL_QUIT) {
+        
+        if(event.type == SDL_EVENT_QUIT) {
             SDL_Quit();
             lv_deinit();
             inited = false;
@@ -349,11 +353,12 @@ static void window_create(lv_display_t * disp)
     int32_t hor_res = (int32_t)((float)(disp->hor_res) * dsc->zoom);
     int32_t ver_res = (int32_t)((float)(disp->ver_res) * dsc->zoom);
     dsc->window = SDL_CreateWindow("LVGL Simulator",
-                                   SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                   //SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                    hor_res, ver_res, flag);       /*last param. SDL_WINDOW_BORDERLESS to hide borders*/
 
-    dsc->renderer = SDL_CreateRenderer(dsc->window, -1,
-                                       LV_SDL_ACCELERATED ? SDL_RENDERER_ACCELERATED : SDL_RENDERER_SOFTWARE);
+    dsc->renderer = SDL_CreateRenderer(dsc->window, NULL);
+                                       //-1,
+                                       //LV_SDL_ACCELERATED ? SDL_RENDERER_ACCELERATED : SDL_RENDERER_SOFTWARE);
 #if LV_USE_DRAW_SDL == 0
     texture_resize(disp);
 
@@ -385,7 +390,7 @@ static void window_update(lv_display_t * disp)
     SDL_RenderClear(dsc->renderer);
 
     /*Update the renderer with the texture containing the rendered image*/
-    SDL_RenderCopy(dsc->renderer, dsc->texture, NULL, NULL);
+    SDL_RenderTexture(dsc->renderer, dsc->texture, NULL, NULL);
 #endif
     SDL_RenderPresent(dsc->renderer);
 }
@@ -424,7 +429,7 @@ static void texture_resize(lv_display_t * disp)
 #elif LV_COLOR_DEPTH == 24
     SDL_PixelFormatEnum px_format = SDL_PIXELFORMAT_BGR24;
 #elif LV_COLOR_DEPTH == 16
-    SDL_PixelFormatEnum px_format = SDL_PIXELFORMAT_RGB565;
+    SDL_PixelFormat px_format = SDL_PIXELFORMAT_RGB565;
 #else
 #error("Unsupported color format")
 #endif

@@ -87,11 +87,11 @@ void lv_sdl_mousewheel_handler(SDL_Event * event)
 {
     uint32_t win_id = UINT32_MAX;
     switch(event->type) {
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             win_id = event->wheel.windowID;
             break;
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             win_id = event->button.windowID;
             break;
         default:
@@ -114,7 +114,7 @@ void lv_sdl_mousewheel_handler(SDL_Event * event)
     lv_sdl_mousewheel_t * dsc = lv_indev_get_driver_data(indev);
 
     switch(event->type) {
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
 #ifdef __EMSCRIPTEN__
             /*Emscripten scales it wrong*/
             if(event->wheel.y < 0) dsc->diff++;
@@ -123,12 +123,12 @@ void lv_sdl_mousewheel_handler(SDL_Event * event)
             dsc->diff = -event->wheel.y;
 #endif
             break;
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if(event->button.button == SDL_BUTTON_MIDDLE) {
                 dsc->state = LV_INDEV_STATE_PRESSED;
             }
             break;
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             if(event->button.button == SDL_BUTTON_MIDDLE) {
                 dsc->state = LV_INDEV_STATE_RELEASED;
             }

@@ -27,7 +27,7 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
-typedef uint32_t (*lv_tick_get_cb_t)(void);
+typedef uint64_t (*lv_tick_get_cb_t)(void);
 
 typedef void (*lv_delay_cb_t)(uint32_t ms);
 

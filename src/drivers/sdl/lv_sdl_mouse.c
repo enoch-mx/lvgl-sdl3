@@ -101,11 +101,11 @@ void lv_sdl_mouse_handler(SDL_Event * event)
 {
     uint32_t win_id = UINT32_MAX;
     switch(event->type) {
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             win_id = event->button.windowID;
             break;
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             win_id = event->motion.windowID;
             break;
 #if LV_SDL_MOUSEWHEEL_MODE == LV_SDL_MOUSEWHEEL_MODE_CROWN
@@ -113,17 +113,22 @@ void lv_sdl_mouse_handler(SDL_Event * event)
             win_id = event->wheel.windowID;
             break;
 #endif
-        case SDL_FINGERUP:
-        case SDL_FINGERDOWN:
-        case SDL_FINGERMOTION:
+        case SDL_EVENT_FINGER_UP:
+        case SDL_EVENT_FINGER_DOWN:
+        case SDL_EVENT_FINGER_MOTION:
 #if SDL_VERSION_ATLEAST(2,0,12)
             win_id = event->tfinger.windowID;
 #endif
             break;
-        case SDL_WINDOWEVENT:
-            win_id = event->window.windowID;
-            break;
+        //case SDL_WINDOWEVENT:
+        //    win_id = event->window.windowID;
+        //    break;
         default:
+            //SDL_EVENT_WINDOW_FIRST
+            //SDL_EVENT_WINDOW_LAST
+            if ((event->type >= SDL_EVENT_WINDOW_FIRST)&&(event->type <= SDL_EVENT_WINDOW_LAST)){
+                win_id = event->window.windowID;
+            }
             return;
     }
 
@@ -148,45 +153,45 @@ void lv_sdl_mouse_handler(SDL_Event * event)
     float zoom = lv_sdl_window_get_zoom(disp);
 
     switch(event->type) {
-        case SDL_WINDOWEVENT:
-            if(event->window.event == SDL_WINDOWEVENT_LEAVE) {
-                indev_dev->left_button_down = false;
-            }
-            break;
-        case SDL_MOUSEBUTTONUP:
+        //case SDL_WINDOWEVENT:
+        //    if(event->window.event == SDL_WINDOWEVENT_LEAVE) {
+        //        indev_dev->left_button_down = false;
+        //    }
+        //    break;
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             if(event->button.button == SDL_BUTTON_LEFT)
                 indev_dev->left_button_down = false;
             break;
-        case SDL_WINDOWEVENT_LEAVE:
+        case SDL_EVENT_WINDOW_MOUSE_LEAVE:
             indev_dev->left_button_down = false;
             break;
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if(event->button.button == SDL_BUTTON_LEFT) {
                 indev_dev->left_button_down = true;
                 indev_dev->last_x = (int16_t)((float)(event->motion.x) / zoom);
                 indev_dev->last_y = (int16_t)((float)(event->motion.y) / zoom);
             }
             break;
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             indev_dev->last_x = (int16_t)((float)(event->motion.x) / zoom);
             indev_dev->last_y = (int16_t)((float)(event->motion.y) / zoom);
             break;
 
-        case SDL_FINGERUP:
+        case SDL_EVENT_FINGER_UP:
             indev_dev->left_button_down = false;
             indev_dev->last_x = (int16_t)((float)hor_res * event->tfinger.x / zoom);
             indev_dev->last_y = (int16_t)((float)ver_res * event->tfinger.y / zoom);
             break;
-        case SDL_FINGERDOWN:
+        case SDL_EVENT_FINGER_DOWN:
             indev_dev->left_button_down = true;
             indev_dev->last_x = (int16_t)((float)hor_res * event->tfinger.x / zoom);
             indev_dev->last_y = (int16_t)((float)ver_res * event->tfinger.y / zoom);
             break;
-        case SDL_FINGERMOTION:
+        case SDL_EVENT_FINGER_MOTION:
             indev_dev->last_x = (int16_t)((float)hor_res * event->tfinger.x / zoom);
             indev_dev->last_y = (int16_t)((float)ver_res * event->tfinger.y / zoom);
             break;
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
 #if LV_SDL_MOUSEWHEEL_MODE == LV_SDL_MOUSEWHEEL_MODE_CROWN
 #ifdef __EMSCRIPTEN__
             /*Emscripten scales it wrong*/
@@ -196,6 +201,9 @@ void lv_sdl_mouse_handler(SDL_Event * event)
             indev_dev->diff = -event->wheel.y;
 #endif  /*__EMSCRIPTEN__*/
 #endif /*LV_SDL_MOUSEWHEEL_MODE == LV_SDL_MOUSEWHEEL_MODE_CROWN*/
+            break;
+        default:
+        
             break;
     }
     lv_indev_read(indev);

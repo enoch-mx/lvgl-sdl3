@@ -267,7 +267,7 @@ void lv_indev_read(lv_indev_t * indev)
     /*End of indev processing, so no act indev*/
     indev_act     = NULL;
     indev_obj_act = NULL;
-
+    
     LV_TRACE_INDEV("finished");
     LV_PROFILER_INDEV_END;
 }

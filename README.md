@@ -29,6 +29,8 @@
 <br>
 
 ## :ledger: Overview
+**LVGL with SDL3**<br>
+This is a patched version of the original lvgl that works with SDL3 in Linux / Windows (hopefully) environment. Very minor changes to make it barely working for my particular case (16bit color). 
 
 **Mature and Well-known**<br>
 LVGL is the most popular free and open source embedded graphics library to create beautiful UIs for any MCU, MPU and display type. It's supported by industry leading vendors and projects like  Arm, STM32, NXP, Espressif, Nuvoton, Arduino, RT-Thread, Zephyr, NuttX, Adafruit and many more.
